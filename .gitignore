@@ -51,3 +51,7 @@ test-ledger/
 .tamagui
 .d.ts
 .d.ts.map
+
+neo4j_db/data/
+neo4j_db/plugins/
+neo4j_db/logs/
