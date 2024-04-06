@@ -11,8 +11,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/neo4j": "^2.0.6",
     "@types/pg": "^8.11.4",
     "express": "^4.19.2",
+    "neo4j-driver": "^5.19.0",
     "pg": "^8.11.5"
   },
   "devDependencies": {
