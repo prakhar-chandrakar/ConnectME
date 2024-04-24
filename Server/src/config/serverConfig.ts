@@ -10,5 +10,6 @@ const config = {
   neo4j_uri: process.env.NEO4J_URI,
   neo4j_user: process.env.NEO4J_USER,
   neo4j_pass: process.env.NEO4J_PASSWORD,
+  neonDb_url: process.env.neonDB_URL,
 };
 export default config;

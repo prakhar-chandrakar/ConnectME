@@ -5,7 +5,7 @@
 ## Tech Stack
 
 - **Backend**: Node.js (TypeScript)
-- **Database**: PostgreSQL (Primary), Neo4j
+- **Database**: PostgreSQL-NeonDB (Primary), Neo4j
 - **Cloud**: Docker (to run PostgreSQL)
 
 ## Run Commands

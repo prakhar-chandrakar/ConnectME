@@ -1,11 +1,15 @@
 import express, { Response } from "express";
-import client from "./db/postgresSetup";
+import client from "./db/DB_setup/postgresSetup";
 import config from "./config/serverConfig";
 import router from "./routes/userRoutes";
 import bodyParser from "body-parser";
-import Neo4j from "./db/neo4jSetup";
+import Neo4j from "./db/DB_setup/neo4jSetup";
+import createTables from "./db/createTable/table";
 
 const app = express();
+const PORT = config.port;
+
+// createTables(); // to create tables
 
 app.use(bodyParser.json());
 app.use("/", router);
@@ -14,25 +18,9 @@ app.get("/", (req, res) => {
   res.send("Hello there, Welcome to ConnectMe Backend Server");
 });
 
-const PORT = config.port;
-
 client.connect().then(() => {
-  console.log("-> POSTGRES database connection eastablished");
-  console.log("");
+  console.log("-> NEON DB(postgres) database connection eastablished \n");
 });
-
-async function createTable() {
-  const createUserTable = `
-  CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL,
-    password VARCHAR(100) NOT NULL
-  )`;
-  await client.query(createUserTable);
-}
-
-createTable();
 Neo4j();
 
 app.listen(PORT, () => {
