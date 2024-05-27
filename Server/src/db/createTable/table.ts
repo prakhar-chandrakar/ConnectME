@@ -3,16 +3,15 @@ import client from "../DB_setup/postgresSetup";
 async function createTables() {
   const createUsersTable = `
     CREATE TABLE IF NOT EXISTS users (
-        user_id SERIAL PRIMARY KEY,
+        user_id VARCHAR(32) PRIMARY KEY,
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        neo4j_id VARCHAR(255) UNIQUE NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );`;
 
   const createProfilesTable = `
     CREATE TABLE IF NOT EXISTS profiles (
-        user_id INTEGER REFERENCES users(user_id),
+        user_id VARCHAR(32) REFERENCES users(user_id),
         first_name VARCHAR(255) NOT NULL,
         last_name VARCHAR(255),
         email VARCHAR(255) NOT NULL,
@@ -29,7 +28,7 @@ async function createTables() {
   const createPostsTable = `
     CREATE TABLE IF NOT EXISTS posts (
         post_id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL,
+        user_id VARCHAR(32) NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(user_id)
     );`;
 
@@ -46,8 +45,8 @@ async function createTables() {
   const createConnectionRequestsTable = `
     CREATE TABLE IF NOT EXISTS connection_request (
         request_id SERIAL PRIMARY KEY,
-        sender_id INTEGER NOT NULL,
-        received_id INTEGER NOT NULL,
+        sender_id VARCHAR(32) NOT NULL,
+        received_id VARCHAR(32) NOT NULL,
         timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         UNIQUE (sender_id, received_id),
         FOREIGN KEY (sender_id) REFERENCES users(user_id),
@@ -63,7 +62,7 @@ async function createTables() {
     console.log("Tables created successfully");
   } catch (error) {
     console.error("Error creating tables:", error);
-  }
+  } 
 }
 
 export default createTables;

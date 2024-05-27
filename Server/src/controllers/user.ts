@@ -1,39 +1,51 @@
 import { Request, Response } from "express";
 import client from "../db/DB_setup/postgresSetup";
+import { session } from "../db/DB_setup/neo4jSetup";
+import { v4 as uuidv4 } from "uuid";
 
 type SignupProp = {
   email: string;
   password: string;
-  neo4j: string;
 };
 
 const signup = async (req: Request, res: Response) => {
   console.log("POST signup route called");
   try {
-    const { email, password, neo4j }: SignupProp = req.body;
+    const { email, password }: SignupProp = req.body;
+    if (!email || !password) throw { status: 400, message: "Missing required fields" };
 
-    await client.query("BEGIN");
-    if (!email || !password || !neo4j) throw { status: 404, message: "missing required fields" };
+    // Check
+    const findCommand = `SELECT email FROM users WHERE email = $1`;
+    const values1 = [email];
+    const response1 = await client.query(findCommand, values1);
+    if (response1.rowCount) throw { status: 409, message: "User already exists" };
 
-    const insertCommand = `INSERT INTO users(email, password, neo4j_id) VALUES ($1, $2, $3)`;
-    const values = [email, password, neo4j];
-    const response = await client.query(insertCommand, values);
+    // Generate new UUID
+    const user_id: string = uuidv4().substr(0, 16);
 
-    if (response.rowCount) {
-      await client.query("COMMIT");
-      console.log("-- user created");
-      return res.json({ message: "User signed in successfully" });
+    // Create user in Neo4j
+    const neo4jResponse = await session.run(`CREATE (u:User {user_id: '${user_id}', email: '${email}'})`);
+    // console.log(neoResponse);
+    if (neo4jResponse) {
+      console.log("-- User create in Neo4j DB");
+
+      // Create user in Postgress Db
+      const insertCommand = `INSERT INTO users(user_id, email, password) VALUES ($1, $2, $3)`;
+      const values2 = [user_id, email, password];
+      const response2 = await client.query(insertCommand, values2);
+      if (response2) {
+        console.log("-- User created in Postgress DB");
+        return res.json({ message: "User signed up successfully" });
+      } else {
+        throw { status: 500, message: "Unable to create row in Postgress" };
+      }
     } else {
-      throw { status: 409, message: "user cannot be created" };
+      throw { status: 500, message: "Unable to create node in neo4j" };
     }
   } catch (error) {
-    await client.query("ROLLBACK");
-    if (error.code === "23505") {
-      error.status = 409;
-      error.message = `${error.detail}`;
-    }
-    console.log("-- " + error.message || "- Unexpected error occurred");
-    return res.status(error.status || 500).json({ message: error.message || "Unexpected error occurred" });
+    console.error("Error during signup:", error);
+    const status = error.status || 500;
+    return res.status(status).json({ message: error.message || "Unexpected error occurred" });
   }
 };
 
